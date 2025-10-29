@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char msg[100], gen[50], rem[50], recv[100];
+    int msgLen, genLen, i, j, flag = 0;
+
+    printf("Enter the Generator Polynomial (CRC-CCITT 16-bit is 10001000000100001):\n");
+    gets(gen);
+    genLen = strlen(gen);
+    int k = genLen - 1;
+
+    printf("Enter the Message (in binary):\n");
+    gets(msg);
+    msgLen = strlen(msg);
+
+    // Append zeros to message
+    char temp[150];
+    strcpy(temp, msg);
+    for (i = 0; i < k; i++)
+        temp[msgLen + i] = '0';
+    temp[msgLen + k] = '\0';
+
+    printf("\nMessage after appending zeros:\n%s\n", temp);
+
+    // Division process (XOR operation)
+    for (i = 0; i < msgLen; i++) {
+        if (temp[i] == '1') {
+            for (j = 0; j < genLen; j++) {
+                temp[i + j] = (temp[i + j] == gen[j]) ? '0' : '1';
+            }
+        }
+    }
+
+    // Extract remainder (checksum)
+    strncpy(rem, temp + msgLen, k);
+    rem[k] = '\0';
+    printf("\nChecksum (Remainder): %s\n", rem);
+
+    // Append checksum to message
+    char codeword[150];
+    strcpy(codeword, msg);
+    strcat(codeword, rem);
+    printf("\nTransmitted Codeword: %s\n", codeword);
+
+    // Receiver side
+    printf("\nEnter Received Codeword:\n");
+    gets(recv);
+
+    int recvLen = strlen(recv);
+    char temp2[150];
+    strcpy(temp2, recv);
+
+    for (i = 0; i < recvLen - k; i++) {
+        if (temp2[i] == '1') {
+            for (j = 0; j < genLen; j++) {
+                temp2[i + j] = (temp2[i + j] == gen[j]) ? '0' : '1';
+            }
+        }
+    }
+
+    // Check remainder
+    for (i = recvLen - k; i < recvLen; i++) {
+        if (temp2[i] == '1') {
+            flag = 1;
+            break;
+        }
+    }
+
+    if (flag == 0)
+        printf("\nReceived Codeword is ERROR-FREE ✅\n");
+    else
+        printf("\nERROR detected in Received Codeword ❌\n");
+
+    return 0;
+}
